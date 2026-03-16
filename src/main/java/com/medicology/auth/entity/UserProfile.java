@@ -18,6 +18,5 @@ public class UserProfile {
     private String displayName;
     private String avatarUrl;
     private String bio;
-    private String occupation;
-    private Boolean medicalBackground = false;
+
 }
