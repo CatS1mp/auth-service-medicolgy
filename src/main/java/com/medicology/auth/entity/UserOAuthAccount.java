@@ -15,7 +15,7 @@ public class UserOAuthAccount {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    private String provider; // google, facebook, apple
-    private String providerUserId;
+    private String facebookUserId;
+    private String googleUserId;
     private String providerEmail;
 }

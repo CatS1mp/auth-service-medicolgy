@@ -5,9 +5,9 @@ import lombok.Data; // Cho @Data
 import java.time.LocalDateTime;
 import java.util.UUID;
 @Entity
-@Table(name = "verification_tokens") // Tên bảng nên để số nhiều hoặc bình thường
+@Table(name = "reset_tokens") // Tên bảng nên để số nhiều hoặc bình thường
 @Data
-public class VerificationToken {
+public class ResetToken {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -22,12 +22,12 @@ public class VerificationToken {
     private User user;
 
     // Constructor để tạo token nhanh trong Service
-    public VerificationToken(UUID token, User user) {
+    public ResetToken(UUID token, User user) {
         this.token = token;
         this.user = user;
-        this.expiryDate = LocalDateTime.now().plusHours(24); // Tự cộng 24 tiếng
+        this.expiryDate = LocalDateTime.now().plusMinutes(36); // Tự cộng 24 phút
     }
     
     // Đừng quên No-Args Constructor cho JPA
-    public VerificationToken() {}
+    public ResetToken() {}
 }
