@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        /* Định nghĩa class hover */
+        .btn-verify:hover {
+            background-color: #148fca !important; /* Màu đậm hơn khi di chuột */
+            transform: scale(1.05); /* Phóng to nhẹ nếu mail client hỗ trợ */
+        }
+        .link-delete:hover {
+            color: #1094d1 !important;
+        }
+        
+        /* Đảm bảo responsive cho mobile */
+        @media only screen and (max-width: 600px) {
+            .container { padding: 0 20px !important; }
+            p { padding: 0 20px !important; }
+        }
+    </style>
+</head>
+<body style="margin:0; background-color: #f9f9f9;">
+
+<div class="container" style="display:block; 
+            font-family:Arial, sans-serif;
+            max-width: 600px;
+            padding: 50px 0;
+            text-align:center;
+            background-color: white;">
+
+    <img src="../svg/logo.svg" alt="Logo" style="width:150px; margin-bottom:20px;">
+    <br>
+    <img src="../svg/mascot.svg" alt="Mascot" style="width:100px; margin-bottom:20px;">
+
+    <h2 style="color: #333;">Xác minh email của bạn</h2>
+
+    <p style="font-size:16px; color:#555; margin-bottom:30px; padding: 0 50px; line-height: 1.5;">
+        Cảm ơn bạn đã giúp chúng tôi bảo mật tài khoản! <br>
+        Nhấp vào nút bên dưới để hoàn tất việc xác minh địa chỉ email của bạn.
+    </p>
+
+    <a th:href="${verifyUrl}" 
+       class="btn-verify"
+       style="background-color:#1CB0F6;
+              color:white;
+              padding:15px 30px;
+              text-decoration:none;
+              border-radius:10px;
+              font-weight:bold;
+              display: inline-block;
+              transition: all 0.3s ease;">
+        XÁC NHẬN EMAIL
+    </a>
+
+    <p style="font-size:14px; color:#999; margin-top:40px; padding: 0 50px;">
+        Bạn không tạo tài khoản? 
+        <a th:href="${deleteUrl}" class="link-delete" style="color: #27A8E7; text-decoration: underline;">Nhấn vào đây</a> 
+        để xóa địa chỉ email này
+    </p>
+</div>
+
+</body>
+</html>
