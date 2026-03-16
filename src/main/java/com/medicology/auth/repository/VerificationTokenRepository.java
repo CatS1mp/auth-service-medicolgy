@@ -1,0 +1,16 @@
+package com.medicology.auth.repository;
+
+import com.medicology.auth.entity.VerificationToken; // Import Class User bạn đã tạo ở bước trước
+
+import java.util.UUID;
+import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface VerificationTokenRepository extends JpaRepository<VerificationToken, UUID> {
+    Optional<VerificationToken> findByToken(UUID token);
+    Optional<VerificationToken> findByUserId(UUID userId);
+    
+}
+
