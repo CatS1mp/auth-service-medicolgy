@@ -18,8 +18,8 @@ public class EmailService {
     public void sendVerificationEmail(String email, UUID token,String type) {
         org.thymeleaf.context.Context context = new org.thymeleaf.context.Context();
 
-        context.setVariable("verifyUrl", "http://localhost:8080/api/auth/" + type + "?token=" + token);
-        context.setVariable("deleteUrl", "http://localhost:8080/api/auth/delete?token=" + token);
+        context.setVariable("verifyUrl", "http://localhost:8080/api/v1/auth/" + type + "?token=" + token);
+        context.setVariable("deleteUrl", "http://localhost:8080/api/v1/auth/delete?token=" + token);
         
         String content = templateEngine.process("EmailTemplate", context);
         MimeMessage message = mailSender.createMimeMessage();

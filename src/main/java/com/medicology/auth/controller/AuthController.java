@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/medicology/api/v1/auth")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -33,19 +33,19 @@ public class AuthController {
     }
 
     //khi click vào token trong mail sẽ gọi endpoint này để xác thực email
-    @GetMapping("/verify-email")
+    @GetMapping("/verify")
     public ResponseEntity<String> verifyEmail(@RequestParam UUID token) {
         authService.verifyEmail(token);
         return ResponseEntity.ok("Email verified successfully!");
     }
     // quên mật khẩu
-    @PostMapping("/password-reset-request")
+    @PostMapping("/reset/request")
     public ResponseEntity<String> requestReset(@RequestParam String email) {
         authService.requestPasswordReset(email);
         return ResponseEntity.ok("Reset link has been sent to your email.");
     }
 
-    @PostMapping("/password-reset-confirm")
+    @PostMapping("/reset")
     public ResponseEntity<String> confirmReset(@Valid @RequestBody ResetPasswordRequestDTO request) {
         authService.resetPassword(request);
         return ResponseEntity.ok("Password has been reset successfully.");

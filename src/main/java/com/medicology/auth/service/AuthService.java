@@ -49,16 +49,16 @@ public class AuthService {
 
     public LoginResponseDTO login(LoginRequestDTO request) {
         User user = userRepository.findByEmail(request.email())
-            .orElseThrow(() -> new IllegalArgumentException("Invalid email or password" ));
+            .orElseThrow(() -> new IllegalArgumentException("Email hoặc mật khẩu không đúng" ));
         
         if(!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
-            throw new IllegalArgumentException("Invalid email or password");
+            throw new IllegalArgumentException("Email hoặc mật khẩu không đúng");
         }
         if(!user.getIsVerified()) {
-            throw new IllegalArgumentException("Email not verified");
+            throw new IllegalArgumentException("Email chưa được xác minh");
         }
         UserProfile profile = userProfileRepository.findById(user.getId())
-            .orElseThrow(() -> new IllegalArgumentException("User profile not found for user id: " + user.getId()));
+            .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy thông tin người dùng cho ID: " + user.getId()));
 
         // 2. Trả về Response
         return LoginResponseDTO.builder()
@@ -121,13 +121,17 @@ public class AuthService {
     @Transactional
     public RegisterResponseDTO registerNewUser(RegisterRequestDTO request) {
         if(!request.password().equals(request.confirmPassword())) {
-            throw new IllegalArgumentException("Password and Confirm Password do not match");   
+            throw new IllegalArgumentException("Xác nhận mật khẩu không khớp");   
         }
         if(userRepository.existsByEmail(request.email())) {
-            throw new IllegalArgumentException("User with email " + request.email() + " already exists");
+            throw new IllegalArgumentException("Người dùng với email " + request.email() + " đã tồn tại");
+        }
+        if(userRepository.existsByUsername(request.username())) {
+            throw new IllegalArgumentException("Người dùng với tên đăng nhập " + request.username() + " đã tồn tại");
         }
         //Tạo user
         User user = new User();
+        user.setUsername(request.username());
         user.setEmail(request.email());
         user.setPasswordHash(passwordEncoder.encode(request.password()));
         userRepository.save(user);
@@ -146,10 +150,10 @@ public class AuthService {
 
     public void resendVerificationEmail(String email) {
         User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+            .orElseThrow(() -> new IllegalArgumentException("Người dùng không tìm thấy với email: " + email));
         
         if(user.getIsVerified()) {
-            throw new IllegalArgumentException("Email already verified");
+            throw new IllegalArgumentException("Email đã được xác minh");
         }
         //Tạo token mới
         UUID token = UUID.randomUUID();
@@ -168,9 +172,9 @@ public class AuthService {
 
     public void requestPasswordReset(String email) {
         User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+            .orElseThrow(() -> new IllegalArgumentException("Người dùng không tìm thấy với email: " + email));
         if(!user.getIsVerified()) {
-            throw new IllegalArgumentException("Email not verified");
+            throw new IllegalArgumentException("Email chưa được xác minh");
         }
         
         //Tạo token mới
@@ -197,7 +201,7 @@ public class AuthService {
             throw new IllegalArgumentException("Reset token has expired");
         }
         if(!request.newPassword().equals(request.confirmPassword())) {
-            throw new IllegalArgumentException("New Password and Confirm New Password do not match");
+            throw new IllegalArgumentException("Mật khẩu mới và xác nhận mật khẩu mới không khớp");
         }
 
         User user = resetToken.getUser();
@@ -210,13 +214,13 @@ public class AuthService {
     @Transactional
     public void changePassword(ChangePasswordRequestDTO request) {
         if(!request.newPassword().equals(request.confirmNewPassword())) {
-            throw new IllegalArgumentException("New Password and Confirm New Password do not match");
+            throw new IllegalArgumentException("Mật khẩu mới và xác nhận mật khẩu mới không khớp");
         }
         User user = userRepository.findByEmail(request.email())
-            .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + request.email()));
+            .orElseThrow(() -> new IllegalArgumentException("Người dùng không tìm thấy với email: " + request.email()));
         
         if(!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
-            throw new IllegalArgumentException("Invalid current password");
+            throw new IllegalArgumentException("Mật khẩu hiện tại không đúng");
         }
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
         userRepository.save(user);
@@ -225,10 +229,10 @@ public class AuthService {
     public void verifyEmail(UUID token) {
         
         VerificationToken verificationToken = tokenRepository.findByToken(token)
-            .orElseThrow(() -> new IllegalArgumentException("Invalid token"));
+            .orElseThrow(() -> new IllegalArgumentException("Token không hợp lệ"));
 
         if(verificationToken.getExpiryDate().isBefore(java.time.LocalDateTime.now())) {
-            throw new IllegalArgumentException("Token has expired");
+            throw new IllegalArgumentException("Token đã hết hạn");
         }
         User user = verificationToken.getUser();
         user.setIsVerified(true);
@@ -236,7 +240,6 @@ public class AuthService {
 
         if (!userProfileRepository.existsById(user.getId())) {
             UserProfile userProfile = new UserProfile();
-            userProfile.setUserId(user.getId());
             userProfile.setDisplayName(user.getUsername());
             userProfile.setUser(user);
             userProfileRepository.save(userProfile);
@@ -248,13 +251,13 @@ public class AuthService {
 
     public boolean checkVerificationStatus(String email) {
         User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+            .orElseThrow(() -> new IllegalArgumentException("Người dùng không tìm thấy với email: " + email));
         return user.getIsVerified();
     }
 
     public boolean checkResetTokenValidity(UUID token) { // Khi ấn vào token gọi api này để check token còn hạn không, nếu còn hạn thì cho reset password, hết hạn thì bắt tạo lại token
         ResetToken resetToken = resetTokenRepository.findByToken(token)
-            .orElseThrow(() -> new IllegalArgumentException("Invalid token"));
+            .orElseThrow(() -> new IllegalArgumentException("Token không hợp lệ"));
         return resetToken.getExpiryDate().isAfter(java.time.LocalDateTime.now());
     }
 

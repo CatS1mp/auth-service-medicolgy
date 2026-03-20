@@ -5,7 +5,7 @@ import lombok.Data; // Cho @Data
 import java.time.LocalDateTime;
 import java.util.UUID;
 @Entity
-@Table(name = "verification_tokens") // Tên bảng nên để số nhiều hoặc bình thường
+@Table(name = "verification_token") // Tên bảng nên để số nhiều hoặc bình thường
 @Data
 public class VerificationToken {
     @Id

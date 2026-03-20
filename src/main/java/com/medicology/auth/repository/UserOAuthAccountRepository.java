@@ -2,7 +2,6 @@ package com.medicology.auth.repository;
 
 import com.medicology.auth.entity.UserOAuthAccount;
 
-import java.lang.foreign.Linker.Option;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;

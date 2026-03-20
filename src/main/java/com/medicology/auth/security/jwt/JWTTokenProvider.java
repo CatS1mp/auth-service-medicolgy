@@ -30,7 +30,7 @@ public class JWTTokenProvider {
 
     @Autowired private RefreshTokenRepository refreshTokenRepository;
 
-    SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+
     
     public String generateAccessToken(User user) {
         return generateToken(user, accessTokenExpiration, "access");
@@ -46,6 +46,7 @@ public class JWTTokenProvider {
 
     // 1. Hàm tạo Token
     private String generateToken(User user, long expiration,String type) {
+        SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
         return Jwts.builder()
                 .subject(user.getEmail())
                 .issuedAt(new Date())

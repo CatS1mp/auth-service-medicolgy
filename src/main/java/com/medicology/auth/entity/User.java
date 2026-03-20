@@ -5,6 +5,8 @@ import jakarta.validation.constraints.Email;
 import lombok.Data; // Cho @Data
 import org.hibernate.annotations.CreationTimestamp; // Cho @CreationTimestamp
 import org.hibernate.annotations.UpdateTimestamp; // Cho @UpdateTimestamp
+import org.hibernate.validator.constraints.UniqueElements;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;

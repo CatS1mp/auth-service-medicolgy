@@ -4,6 +4,7 @@ import jakarta.persistence.*; // Cho @Entity, @Table, @Id, @Column, @OneToOne...
 import lombok.Data; // Cho @Data
 import java.util.UUID;
 
+@Entity
 @Table(name = "user_profile")
 @Data
 public class UserProfile {
