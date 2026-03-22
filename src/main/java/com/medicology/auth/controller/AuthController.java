@@ -50,4 +50,17 @@ public class AuthController {
         authService.resetPassword(request);
         return ResponseEntity.ok("Password has been reset successfully.");
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestBody(required = false) LogoutRequestDTO request) {
+        authService.logout(authHeader, request);
+        return ResponseEntity.ok("Logged out successfully. Refresh token revoked.");
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<LoginResponseDTO> refresh(@Valid @RequestBody RefreshTokenRequestDTO request) {
+        return ResponseEntity.ok(authService.refreshToken(request.refreshToken()));
+    }
 }
