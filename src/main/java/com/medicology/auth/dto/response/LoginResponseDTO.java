@@ -12,11 +12,8 @@ import lombok.NoArgsConstructor;
 public class LoginResponseDTO {
     private String accessToken;
     private String refreshToken;
+    @Builder.Default
     private String tokenType = "Bearer";
-
-    // 2. Thời hạn (để Frontend chủ động)
-    private Long expiresIn; 
-
-    // 3. Thông tin User để hiển thị UI nhanh
+    private Long expiresIn;
     private UserProfileHeaderResponseDTO userProfile;
 }
