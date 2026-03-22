@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
+import jakarta.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.Date;
 
@@ -28,13 +29,20 @@ public class JWTTokenProvider {
     @Value("${refresh.token.expiration}")
     private long refreshTokenExpiration;
 
-    @Autowired private RefreshTokenRepository refreshTokenRepository;
+    @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
 
+    private SecretKey key;
 
-    
+    @PostConstruct
+    public void init() {
+        this.key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+    }
+
     public String generateAccessToken(User user) {
         return generateToken(user, accessTokenExpiration, "access");
     }
+
     public String generateRefreshToken(User user) {
         RefreshToken refreshToken = new RefreshToken();
         refreshToken.setUser(user);
@@ -45,8 +53,7 @@ public class JWTTokenProvider {
     }
 
     // 1. Hàm tạo Token
-    private String generateToken(User user, long expiration,String type) {
-        SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+    private String generateToken(User user, long expiration, String type) {
         return Jwts.builder()
                 .subject(user.getEmail())
                 .issuedAt(new Date())
@@ -55,6 +62,5 @@ public class JWTTokenProvider {
                 .signWith(key)
                 .compact();
     }
-
 
 }
