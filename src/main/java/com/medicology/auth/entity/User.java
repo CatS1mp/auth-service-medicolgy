@@ -5,21 +5,14 @@ import jakarta.validation.constraints.Email;
 import lombok.Data; // Cho @Data
 import org.hibernate.annotations.CreationTimestamp; // Cho @CreationTimestamp
 import org.hibernate.annotations.UpdateTimestamp; // Cho @UpdateTimestamp
-import org.hibernate.validator.constraints.UniqueElements;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.List;
 import java.util.UUID;
 
 @Entity
 @Table(name = "[user]") // Dùng ngoặc vuông vì 'user' là từ khóa hệ thống
 @Data
-public class User implements UserDetails {
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -62,33 +55,4 @@ public class User implements UserDetails {
     @OneToOne(mappedBy = "user") // Khai báo rằng bảng Token mới là chủ thể giữ khóa ngoại
     private VerificationToken verificationToken;
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(isAdmin != null && isAdmin ? "ROLE_ADMIN" : "ROLE_USER"));
-    }
-
-    @Override
-    public String getPassword() {
-        return passwordHash;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return isVerified;
-    }
 }
