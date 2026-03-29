@@ -12,7 +12,7 @@ RUN mvn clean package -DskipTests
 # Giai đoạn 2: Chạy
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
-# Chỉ đích danh file jar hoàn thiện (Fat jar) bằng keyword "-SNAPSHOT.jar"
-COPY --from=build /app/target/*-SNAPSHOT.jar app.jar
+
+COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
