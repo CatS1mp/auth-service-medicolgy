@@ -1,8 +1,18 @@
-# Bước 1: Sử dụng hình ảnh JDK để chạy ứng dụng
-FROM eclipse-temurin:17-jdk-alpine
-# Tạo thư mục app
+# Giai đoạn 1: Build
+FROM maven:3.8.5-openjdk-17 AS build
 WORKDIR /app
-# Copy file jar đã build từ máy bạn lên (hoặc để Railway tự build)
-COPY target/*.jar app.jar
-# Lệnh để chạy ứng dụng
+
+# Khởi tạo Cache Layer cho Dependency
+COPY pom.xml .
+RUN mvn dependency:go-offline
+
+COPY src ./src
+RUN mvn clean package -DskipTests
+
+# Giai đoạn 2: Chạy
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+# Chỉ đích danh file jar hoàn thiện (Fat jar) bằng keyword "-SNAPSHOT.jar"
+COPY --from=build /app/target/*-SNAPSHOT.jar app.jar
+EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
