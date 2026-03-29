@@ -1,0 +1,52 @@
+# Chuỗi bí mật dùng để ký tên cho Token (Nên dài và phức tạp)
+jwt.secret=your_jwt_secret_here
+
+server.port=8080
+frontend.url=your_frontend_url_here
+
+# Thời gian hết hạn (ví dụ: 86400000 milliseconds = 24 giờ)
+refresh.token.expiration=5400000
+access.token.expiration=1800000
+verify.token.expiration=36
+reset.token.expiration=36
+
+spring.application.name=Medicology's Auth Service
+# 1. URL kết nối (Thêm jdbc: vào đầu và bỏ phần user:pass ra ngoài)
+spring.datasource.url=jdbc:postgresql://your_db_host:5432/postgres
+
+# 2. Thông tin đăng nhập (Thay [YOUR-PASSWORD] bằng mật khẩu lúc bạn tạo Project Supabase)
+spring.datasource.username=your_db_username
+spring.datasource.password=your_db_password
+
+# 3. Driver và Dialect cho PostgreSQL
+spring.datasource.driver-class-name=org.postgresql.Driver
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+
+# 4. Tự động tạo bảng (Rất quan trọng khi mới chuyển sang DB trống)
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+
+# 1. Client ID và Secret lấy từ Google Cloud Console
+spring.security.oauth2.client.registration.google.client-id=your_google_client_id.apps.googleusercontent.com
+spring.security.oauth2.client.registration.google.client-secret=your_google_client_secret
+spring.security.oauth2.client.registration.google.redirect-uri=http://localhost:8080/login/oauth2/code/google
+
+spring.security.oauth2.client.registration.facebook.client-id=your_facebook_client_id
+spring.security.oauth2.client.registration.facebook.client-secret=your_facebook_client_secret
+spring.security.oauth2.client.registration.facebook.scope=email,public_profile
+
+# Cấu hình Mail Server (Ví dụ với Gmail)
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.username=your_email@gmail.com
+spring.mail.password=your_email_app_password
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+
+# Cấu hình mã hóa (UTF-8 để không lỗi tiếng Việt)
+spring.mail.default-encoding=UTF-8
+
+# Đường dẫn để xem giao diện Swagger UI
+springdoc.swagger-ui.path=/swagger-ui.html
+# Đường dẫn file JSON chứa đặc tả API (cho các công cụ khác đọc)
+springdoc.api-docs.path=/api-docs
