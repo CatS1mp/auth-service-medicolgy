@@ -3,6 +3,10 @@ package com.medicology.auth.entity;
 import jakarta.persistence.*; // Cho @Entity, @Table, @Id, @Column, @OneToOne...
 import jakarta.validation.constraints.Email;
 import lombok.Data; // Cho @Data
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
 import org.hibernate.annotations.CreationTimestamp; // Cho @CreationTimestamp
 import org.hibernate.annotations.UpdateTimestamp; // Cho @UpdateTimestamp
 import java.time.LocalDate;
@@ -11,7 +15,9 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "[user]") // Dùng ngoặc vuông vì 'user' là từ khóa hệ thống
-@Data
+@Getter // Dùng Getter/Setter riêng thay vì @Data để kiểm soát tốt hơn
+@Setter
+@ToString(exclude = { "profile", "settings", "verificationToken" })
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -46,10 +52,10 @@ public class User {
     private LocalDateTime updatedAt;
 
     // Mapping tới các bảng liên quan
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "user")
     private UserProfile profile;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "user")
     private UserSetting settings;
 
     @OneToOne(mappedBy = "user") // Khai báo rằng bảng Token mới là chủ thể giữ khóa ngoại
