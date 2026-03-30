@@ -7,14 +7,14 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import java.util.List;
+
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import lombok.RequiredArgsConstructor;
@@ -61,17 +61,29 @@ public class SecurityConfig {
 
         @Bean
         public OpenAPI medicologyOpenAPI() {
+                // Định nghĩa Server để tránh lỗi Mixed Content (HTTP vs HTTPS)
+                Server productionServer = new Server()
+                                .url("https://auth-service-medicolgy-production.up.railway.app")
+                                .description("Server chính thức trên Railway");
+
+                Server localServer = new Server()
+                                .url("http://localhost:8080")
+                                .description("Server chạy ở Local");
+
                 return new OpenAPI()
-                                // 1. Định nghĩa cách thức bảo mật là JWT
+                                // 1. Thêm danh sách Server vào đây
+                                .servers(List.of(productionServer, localServer))
+
+                                // 2. Giữ nguyên phần định nghĩa JWT của bạn
                                 .components(new Components()
                                                 .addSecuritySchemes("bearerAuth",
                                                                 new SecurityScheme()
                                                                                 .type(SecurityScheme.Type.HTTP)
                                                                                 .scheme("bearer")
                                                                                 .bearerFormat("JWT")))
-                                // 2. Áp dụng bảo mật này cho tất cả API trong tài liệu
+
+                                // 3. Giữ nguyên việc áp dụng bảo mật
                                 .addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
-        }
-        // Các cấu hình SecurityFilterChain khác của bạn...
+        }// Các cấu hình SecurityFilterChain khác của bạn...
 
 }
