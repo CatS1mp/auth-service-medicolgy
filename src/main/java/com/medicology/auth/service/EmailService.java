@@ -14,6 +14,8 @@ import jakarta.mail.internet.MimeMessage;
 public class EmailService {
     @Value("${frontend.url}")
     private String frontendUrl;
+    @Value("${spring.mail.email}")
+    private String fromEmail;
     @Autowired
     private JavaMailSender mailSender;
     @Autowired
@@ -32,6 +34,7 @@ public class EmailService {
         try {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
+            helper.setFrom(fromEmail);
             helper.setTo(email);
             helper.setSubject("Xác thực tài khoản của bạn");
             helper.setText(content, true);
