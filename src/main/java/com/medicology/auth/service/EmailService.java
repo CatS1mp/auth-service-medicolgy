@@ -37,7 +37,7 @@ public class EmailService {
         context.setVariable("deleteUrl", frontendUrl + "/auth/delete?token=" + token);
 
         String content = templateEngine.process("EmailTemplate", context);
-
+        System.out.println("DEBUG HTML CONTENT: " + content);
         String url = "https://api.sendgrid.com/v3/mail/send";
 
         HttpHeaders headers = new HttpHeaders();
