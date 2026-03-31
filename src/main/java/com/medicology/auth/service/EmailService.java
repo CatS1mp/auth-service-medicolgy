@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-
+import org.springframework.scheduling.annotation.Async;
 import jakarta.mail.internet.MimeMessage;
 
 @Service
@@ -21,6 +21,7 @@ public class EmailService {
     @Autowired
     private org.thymeleaf.TemplateEngine templateEngine;
 
+    @Async
     public void sendVerificationEmail(String email, UUID token, String type) {
         org.thymeleaf.context.Context context = new org.thymeleaf.context.Context();
 
