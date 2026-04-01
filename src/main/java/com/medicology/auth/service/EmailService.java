@@ -16,11 +16,11 @@ public class EmailService {
     @Value("${frontend.url}")
     private String frontendUrl;
 
-    @Value("${sendgrid.api.key}")
+    @Value("${sendgrid.api-key}")
     private String apiKey;
 
     // Nên đưa email gửi vào file config
-    @Value("${sendgrid.from.email}")
+    @Value("${sendgrid.from-email}")
     private String fromEmail;
 
     private final org.thymeleaf.TemplateEngine templateEngine;

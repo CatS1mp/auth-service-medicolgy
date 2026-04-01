@@ -1,6 +1,8 @@
 package com.medicology.auth.entity;
 import jakarta.persistence.*; // Cho @Entity, @Table, @Id, @Column, @OneToOne...
 import lombok.Data; // Cho @Data
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.util.UUID;
 import java.time.LocalDateTime;
 
@@ -18,6 +20,9 @@ public class RefreshToken {
 
     @Column(nullable = false, length = 500)
     private String token;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 
     private LocalDateTime expiresAt;
 

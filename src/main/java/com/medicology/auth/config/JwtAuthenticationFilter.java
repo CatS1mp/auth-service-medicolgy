@@ -74,9 +74,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception e) {
-            // Có thể token hết hạn hoặc sai định dạng, catch exception và để filter tiếp
-            // tục (sẽ bị chặn ở các filter sau nếu endpoint requires bảo mật)
-            throw new RuntimeException("Lỗi xác thực JWT: " + e.getMessage());
+            SecurityContextHolder.clearContext();
         }
 
         // 6. Chuyển request đến bộ lọc tiếp theo

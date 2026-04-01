@@ -18,6 +18,7 @@ public class CustomUserDetail implements UserDetails {
     private final String password;
     private final Boolean isAdmin;
     private final Boolean isVerified;
+    private final Boolean isActive;
 
     public CustomUserDetail(User user) {
         this.id = user.getId();
@@ -25,6 +26,7 @@ public class CustomUserDetail implements UserDetails {
         this.password = user.getPasswordHash();
         this.isAdmin = user.getIsAdmin();
         this.isVerified = user.getIsVerified();
+        this.isActive = user.getIsActive();
     }
 
     @Override
@@ -49,7 +51,7 @@ public class CustomUserDetail implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return Boolean.TRUE.equals(isActive);
     }
 
     @Override
@@ -59,6 +61,6 @@ public class CustomUserDetail implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return isVerified;
+        return Boolean.TRUE.equals(isVerified);
     }
 }

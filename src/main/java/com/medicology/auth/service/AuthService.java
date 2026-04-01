@@ -6,6 +6,7 @@ import com.medicology.auth.repository.VerificationTokenRepository;
 import com.medicology.auth.repository.UserOAuthAccountRepository;
 import com.medicology.auth.repository.UserProfileRepository;
 import com.medicology.auth.repository.RefreshTokenRepository;
+import com.medicology.auth.repository.UserSettingRepository;
 
 import com.medicology.auth.entity.UserOAuthAccount;
 import com.medicology.auth.entity.UserProfile;
@@ -13,12 +14,15 @@ import com.medicology.auth.entity.VerificationToken;
 import com.medicology.auth.entity.ResetToken;
 import com.medicology.auth.entity.User;
 import com.medicology.auth.entity.RefreshToken;
+import com.medicology.auth.entity.UserSetting;
 
 import com.medicology.auth.dto.request.*;
 import com.medicology.auth.dto.response.*;
+import com.medicology.auth.exception.ApiException;
 
 import com.medicology.auth.security.jwt.JWTTokenProvider;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import jakarta.transaction.Transactional;
@@ -27,8 +31,11 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -48,6 +55,7 @@ public class AuthService {
     private final VerificationTokenRepository tokenRepository;
     private final ResetTokenRepository resetTokenRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final UserSettingRepository userSettingRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final JWTTokenProvider jwtTokenProvider;
@@ -59,8 +67,17 @@ public class AuthService {
                     new UsernamePasswordAuthenticationToken(request.email(), request.password()));
         } catch (BadCredentialsException e) {
             throw new IllegalArgumentException("Email hoặc mật khẩu không đúng");
+        } catch (DisabledException e) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Tài khoản chưa xác minh email.");
+        } catch (LockedException e) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Tài khoản đang bị khóa.");
         }
         User user = userRepository.findByEmail(request.email()).get();
+        if (!Boolean.TRUE.equals(user.getIsActive())) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Tài khoản đang bị khóa.");
+        }
+        user.setLastLoginAt(LocalDateTime.now());
+        userRepository.save(user);
         UserProfile profile = userProfileRepository.findById(user.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy thông tin..."));
         return LoginResponseDTO.builder()
@@ -84,6 +101,11 @@ public class AuthService {
 
                     return userRepository.save(newUser);
                 });
+        if (!Boolean.TRUE.equals(user.getIsActive())) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Tài khoản đang bị khóa.");
+        }
+        user.setLastLoginAt(LocalDateTime.now());
+        userRepository.save(user);
 
         UserProfile profile = userProfileRepository.findById(user.getId())
                 .orElseGet(() -> {
@@ -93,6 +115,11 @@ public class AuthService {
                     newProfile.setUser(user);
                     return userProfileRepository.save(newProfile);
                 });
+        userSettingRepository.findByUserId(user.getId()).orElseGet(() -> {
+            UserSetting userSetting = new UserSetting();
+            userSetting.setUser(user);
+            return userSettingRepository.save(userSetting);
+        });
 
         UserOAuthAccount oauthAccount = userOAuthAccountRepository.findByUser(user)
                 .orElseGet(() -> {
@@ -291,6 +318,9 @@ public class AuthService {
         }
         
         User user = refreshToken.getUser();
+        if (!Boolean.TRUE.equals(user.getIsActive())) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Tài khoản đang bị khóa.");
+        }
         UserProfile profile = userProfileRepository.findById(user.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy thông tin user."));
                 
