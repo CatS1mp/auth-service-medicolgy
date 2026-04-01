@@ -38,6 +38,12 @@ public class AuthController {
         authService.verifyEmail(token);
         return ResponseEntity.ok("Email verified successfully!");
     }
+
+    @PostMapping("/resend")
+    public ResponseEntity<String> resendVerificationEmail(@RequestParam String email) {
+        authService.resendVerificationEmail(email);
+        return ResponseEntity.ok("Verification email has been resent.");
+    }
     // quên mật khẩu
     @PostMapping("/reset/request")
     public ResponseEntity<String> requestReset(@RequestParam String email) {
