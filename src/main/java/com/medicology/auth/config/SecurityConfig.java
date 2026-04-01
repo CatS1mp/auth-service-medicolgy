@@ -63,7 +63,7 @@ public class SecurityConfig {
         public OpenAPI medicologyOpenAPI() {
                 // Định nghĩa Server để tránh lỗi Mixed Content (HTTP vs HTTPS)
                 Server productionServer = new Server()
-                                .url("https://auth-service-medicolgy-production.up.railway.app")
+                                .url("https://auth-service-medicology-production.up.railway.app")
                                 .description("Server chính thức trên Railway");
 
                 Server localServer = new Server()
