@@ -58,6 +58,7 @@ public class JWTTokenProvider {
                 .subject(user.getEmail())
                 .issuedAt(new Date())
                 .claim("type", type)
+                .claim("id", user.getId().toString())
                 .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(key)
                 .compact();
