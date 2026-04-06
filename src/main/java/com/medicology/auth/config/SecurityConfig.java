@@ -39,6 +39,7 @@ public class SecurityConfig {
                         .authorizeHttpRequests(auth -> auth
                                 // 1. Mở cửa hoàn toàn cho Swagger và các file cấu hình của nó
                                 .requestMatchers(
+                                        "/",
                                         "/v3/api-docs/**",
                                         "/v3/api-docs",
                                         "/swagger-ui/**",
