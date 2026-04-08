@@ -110,9 +110,9 @@ public class AuthService {
         UserProfile profile = userProfileRepository.findById(user.getId())
                 .orElseGet(() -> {
                     UserProfile newProfile = new UserProfile();
-                    newProfile.setUserId(user.getId());
                     newProfile.setDisplayName(request.name());
                     newProfile.setUser(user);
+                    user.setProfile(newProfile);
                     return userProfileRepository.save(newProfile);
                 });
         userSettingRepository.findByUserId(user.getId()).orElseGet(() -> {
@@ -272,6 +272,7 @@ public class AuthService {
             UserProfile userProfile = new UserProfile();
             userProfile.setDisplayName(user.getUsername());
             userProfile.setUser(user);
+            user.setProfile(userProfile);
             userProfileRepository.save(userProfile);
         }
 

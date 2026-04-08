@@ -47,6 +47,7 @@ public class UserProfileService {
                 .orElseGet(() -> {
                     UserProfile profile = new UserProfile();
                     profile.setUser(user);
+                    user.setProfile(profile);
                     profile.setDisplayName(user.getUsername());
                     return userProfileRepository.save(profile);
                 });
