@@ -10,5 +10,5 @@ public record OAuthRequestDTO(
     
     String facebookId,
     String googleId
-    // Sau này có thể thêm: String appleId, String avatarUrl...
+    // Sau này có thể thêm: String appleId...
 ) {}

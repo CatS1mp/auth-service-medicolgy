@@ -15,15 +15,27 @@ import lombok.NoArgsConstructor;
 
 public class UserProfileHeaderResponseDTO {
     private String displayName;
-    private String avatarUrl;
     private String bio;
 
     static public UserProfileHeaderResponseDTO entityToDTO(UserProfile userProfile){
         if(userProfile == null) return null;
         return UserProfileHeaderResponseDTO.builder()
-                .displayName(userProfile.getDisplayName())
-                .avatarUrl(userProfile.getAvatarUrl())
+                .displayName(buildDisplayName(userProfile))
                 .bio(userProfile.getBio())
                 .build();
+    }
+
+    private static String buildDisplayName(UserProfile userProfile) {
+        StringBuilder builder = new StringBuilder();
+        if (userProfile.getLastName() != null && !userProfile.getLastName().isBlank()) {
+            builder.append(userProfile.getLastName().trim());
+        }
+        if (userProfile.getFirstName() != null && !userProfile.getFirstName().isBlank()) {
+            if (builder.length() > 0) {
+                builder.append(' ');
+            }
+            builder.append(userProfile.getFirstName().trim());
+        }
+        return builder.length() == 0 ? null : builder.toString();
     }
 }

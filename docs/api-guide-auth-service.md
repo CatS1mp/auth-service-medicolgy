@@ -261,7 +261,7 @@ Kết quả:
 Tác dụng:
 
 - Lấy user profile hiện tại
-- Chứa các field mang tính hiển thị như `displayName`, `avatarUrl`, `bio`
+- Chứa các field như `userId`, `email`, `username`, `lastName`, `firstName`, `dateOfBirth`, `gender`, `address`, `displayName` (read-only), `bio`
 
 Khi dùng:
 
@@ -278,8 +278,12 @@ Body mẫu:
 
 ```json
 {
-  "displayName": "John Doe",
-  "avatarUrl": "https://cdn.example.com/avatar.jpg",
+  "username": "john_doe",
+  "lastName": "Tran Van",
+  "firstName": "A",
+  "dateOfBirth": "2005-11-19",
+  "gender": "MALE",
+  "address": "Ho Chi Minh",
   "bio": "Doctor and lifelong learner"
 }
 ```

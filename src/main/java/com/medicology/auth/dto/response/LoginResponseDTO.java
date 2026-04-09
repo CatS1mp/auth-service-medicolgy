@@ -15,5 +15,5 @@ public class LoginResponseDTO {
     @Builder.Default
     private String tokenType = "Bearer";
     private Long expiresIn;
-    private UserProfileHeaderResponseDTO userProfile;
+    private UserProfileResponseDTO userProfile;
 }

@@ -16,8 +16,19 @@ public class UserProfile {
     @JoinColumn(name = "user_id")
     private User user;
 
-    private String displayName;
-    private String avatarUrl;
+    @Column(length = 100)
+    private String firstName;
+
+    @Column(length = 100)
+    private String lastName;
+
+    @Column(length = 50)
+    private String gender;
+
+    @Column(length = 255)
+    private String address;
+
+    @Column(length = 500)
     private String bio;
 
 }

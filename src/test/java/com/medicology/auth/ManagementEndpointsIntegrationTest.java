@@ -3,6 +3,7 @@ package com.medicology.auth;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.medicology.auth.entity.RefreshToken;
 import com.medicology.auth.entity.User;
+import com.medicology.auth.entity.UserProfile;
 import com.medicology.auth.repository.RefreshTokenRepository;
 import com.medicology.auth.repository.UserOAuthAccountRepository;
 import com.medicology.auth.repository.UserProfileRepository;
@@ -21,11 +22,13 @@ import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -108,6 +111,71 @@ class ManagementEndpointsIntegrationTest {
     }
 
     @Test
+    void getCurrentProfileReturnsMergedUserAndProfileFields() throws Exception {
+        user.setDateOfBirth(LocalDate.of(2005, 11, 19));
+        user.setLocation("Thanh pho Ho Chi Minh");
+        userRepository.save(user);
+
+        UserProfile profile = new UserProfile();
+        profile.setUser(user);
+        profile.setLastName("Tran Van");
+        profile.setFirstName("A");
+        profile.setGender("MALE");
+        profile.setBio("Gioi thieu ban than");
+        userProfileRepository.save(profile);
+
+        mockMvc.perform(get("/api/v1/profiles/me")
+                        .header("Authorization", "Bearer " + userAccessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("user@medicology.dev"))
+                .andExpect(jsonPath("$.username").value("user-one"))
+                .andExpect(jsonPath("$.lastName").value("Tran Van"))
+                .andExpect(jsonPath("$.firstName").value("A"))
+                .andExpect(jsonPath("$.dateOfBirth").value("2005-11-19"))
+                .andExpect(jsonPath("$.gender").value("MALE"))
+                .andExpect(jsonPath("$.address").value("Thanh pho Ho Chi Minh"))
+                .andExpect(jsonPath("$.bio").value("Gioi thieu ban than"));
+    }
+
+    @Test
+    void putProfileMeUpdatesNewNullableFields() throws Exception {
+        String payload = objectMapper.writeValueAsString(new UpdateProfileRequest(
+                "user-profile-updated",
+                "Tran Van",
+                "A",
+                LocalDate.of(2005, 11, 19),
+                "MALE",
+                "Thanh pho Ho Chi Minh",
+                "Gioi thieu ban than"));
+
+        mockMvc.perform(put("/api/v1/profiles/me")
+                        .header("Authorization", "Bearer " + userAccessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("user-profile-updated"))
+                .andExpect(jsonPath("$.lastName").value("Tran Van"))
+                .andExpect(jsonPath("$.firstName").value("A"))
+                .andExpect(jsonPath("$.dateOfBirth").value("2005-11-19"))
+                .andExpect(jsonPath("$.gender").value("MALE"))
+                .andExpect(jsonPath("$.address").value("Thanh pho Ho Chi Minh"))
+                .andExpect(jsonPath("$.bio").value("Gioi thieu ban than"))
+                .andExpect(jsonPath("$.displayName").value("Tran Van A"));
+
+        User reloadedUser = userRepository.findById(user.getId()).orElseThrow();
+        Assertions.assertEquals("user-profile-updated", reloadedUser.getUsername());
+        Assertions.assertEquals(LocalDate.of(2005, 11, 19), reloadedUser.getDateOfBirth());
+        Assertions.assertEquals("Thanh pho Ho Chi Minh", reloadedUser.getLocation());
+
+        UserProfile reloadedProfile = userProfileRepository.findById(user.getId()).orElseThrow();
+        Assertions.assertEquals("Tran Van", reloadedProfile.getLastName());
+        Assertions.assertEquals("A", reloadedProfile.getFirstName());
+        Assertions.assertEquals("MALE", reloadedProfile.getGender());
+        Assertions.assertEquals("Thanh pho Ho Chi Minh", reloadedProfile.getAddress());
+        Assertions.assertEquals("Gioi thieu ban than", reloadedProfile.getBio());
+    }
+
+    @Test
     void patchSettingsCreatesAndUpdatesCurrentUserSettings() throws Exception {
         String payload = objectMapper.writeValueAsString(new SettingsRequest(false, "dark", 3));
 
@@ -153,5 +221,15 @@ class ManagementEndpointsIntegrationTest {
             Boolean notificationEnabled,
             String themePreference,
             Integer dailyGoalCourses) {
+    }
+
+    private record UpdateProfileRequest(
+            String username,
+            String lastName,
+            String firstName,
+            LocalDate dateOfBirth,
+            String gender,
+            String address,
+            String bio) {
     }
 }

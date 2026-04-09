@@ -78,14 +78,12 @@ public class AuthService {
         }
         user.setLastLoginAt(LocalDateTime.now());
         userRepository.save(user);
-        UserProfile profile = userProfileRepository.findById(user.getId())
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy thông tin..."));
+        UserProfile profile = getOrCreateProfile(user);
         return LoginResponseDTO.builder()
                 .accessToken(jwtTokenProvider.generateAccessToken(user))
                 .refreshToken(jwtTokenProvider.generateRefreshToken(user))
                 .expiresIn(accessTokenExpiration / 1000)
-                // Gọi hàm static để convert cực kỳ gọn gàng
-                .userProfile(UserProfileHeaderResponseDTO.entityToDTO(profile))
+                .userProfile(UserProfileResponseDTO.fromEntities(user, profile))
                 .build();
     }
 
@@ -107,14 +105,7 @@ public class AuthService {
         user.setLastLoginAt(LocalDateTime.now());
         userRepository.save(user);
 
-        UserProfile profile = userProfileRepository.findById(user.getId())
-                .orElseGet(() -> {
-                    UserProfile newProfile = new UserProfile();
-                    newProfile.setDisplayName(request.name());
-                    newProfile.setUser(user);
-                    user.setProfile(newProfile);
-                    return userProfileRepository.save(newProfile);
-                });
+        UserProfile profile = getOrCreateProfile(user);
         userSettingRepository.findByUserId(user.getId()).orElseGet(() -> {
             UserSetting userSetting = new UserSetting();
             userSetting.setUser(user);
@@ -142,8 +133,7 @@ public class AuthService {
                 .accessToken(jwtTokenProvider.generateAccessToken(user))
                 .refreshToken(jwtTokenProvider.generateRefreshToken(user))
                 .expiresIn(accessTokenExpiration / 1000)
-                // Gọi hàm static để convert cực kỳ gọn gàng
-                .userProfile(UserProfileHeaderResponseDTO.entityToDTO(profile))
+                .userProfile(UserProfileResponseDTO.fromEntities(user, profile))
                 .build();
     }
 
@@ -268,13 +258,7 @@ public class AuthService {
         user.setIsVerified(true);
         userRepository.save(user);
 
-        if (!userProfileRepository.existsById(user.getId())) {
-            UserProfile userProfile = new UserProfile();
-            userProfile.setDisplayName(user.getUsername());
-            userProfile.setUser(user);
-            user.setProfile(userProfile);
-            userProfileRepository.save(userProfile);
-        }
+        getOrCreateProfile(user);
 
         tokenRepository.delete(verificationToken); // Xóa token sau khi xác thực thành công
 
@@ -322,8 +306,7 @@ public class AuthService {
         if (!Boolean.TRUE.equals(user.getIsActive())) {
             throw new ApiException(HttpStatus.FORBIDDEN, "Tài khoản đang bị khóa.");
         }
-        UserProfile profile = userProfileRepository.findById(user.getId())
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy thông tin user."));
+        UserProfile profile = getOrCreateProfile(user);
                 
         // Vô hiệu hóa refresh token cũ (Refresh Token Rotation)
         refreshToken.setRevoked(true);
@@ -333,8 +316,19 @@ public class AuthService {
                 .accessToken(jwtTokenProvider.generateAccessToken(user))
                 .refreshToken(jwtTokenProvider.generateRefreshToken(user))
                 .expiresIn(accessTokenExpiration / 1000)
-                .userProfile(UserProfileHeaderResponseDTO.entityToDTO(profile))
+                .userProfile(UserProfileResponseDTO.fromEntities(user, profile))
                 .build();
+    }
+
+    private UserProfile getOrCreateProfile(User user) {
+        return userProfileRepository.findById(user.getId())
+                .orElseGet(() -> {
+                    UserProfile profile = new UserProfile();
+                    profile.setAddress(user.getLocation());
+                    profile.setUser(user);
+                    user.setProfile(profile);
+                    return userProfileRepository.save(profile);
+                });
     }
 
 }

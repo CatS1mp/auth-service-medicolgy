@@ -4,8 +4,11 @@ import com.medicology.auth.dto.request.UpdateProfileRequestDTO;
 import com.medicology.auth.dto.response.UserProfileResponseDTO;
 import com.medicology.auth.entity.User;
 import com.medicology.auth.entity.UserProfile;
+import com.medicology.auth.exception.ApiException;
 import com.medicology.auth.repository.UserProfileRepository;
+import com.medicology.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,13 +18,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserProfileService {
     private final CurrentUserService currentUserService;
     private final UserProfileRepository userProfileRepository;
+    private final UserRepository userRepository;
 
     public UserProfileResponseDTO getCurrentProfile(Authentication authentication) {
         return getProfileByUser(currentUserService.getCurrentUser(authentication));
     }
 
     public UserProfileResponseDTO getProfileByUser(User user) {
-        return UserProfileResponseDTO.fromEntity(getOrCreateProfile(user));
+        return UserProfileResponseDTO.fromEntities(user, getOrCreateProfile(user));
     }
 
     @Transactional
@@ -29,17 +33,37 @@ public class UserProfileService {
         User user = currentUserService.getCurrentUser(authentication);
         UserProfile profile = getOrCreateProfile(user);
 
-        if (request.displayName() != null) {
-            profile.setDisplayName(request.displayName());
+        if (request.username() != null && !request.username().equals(user.getUsername())) {
+            if (userRepository.existsByUsernameAndIdNot(request.username(), user.getId())) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "Username đã được sử dụng.");
+            }
+            user.setUsername(request.username());
         }
-        if (request.avatarUrl() != null) {
-            profile.setAvatarUrl(request.avatarUrl());
+
+        if (request.dateOfBirth() != null) {
+            user.setDateOfBirth(request.dateOfBirth());
+        }
+
+        if (request.lastName() != null) {
+            profile.setLastName(request.lastName());
+        }
+        if (request.firstName() != null) {
+            profile.setFirstName(request.firstName());
+        }
+        if (request.gender() != null) {
+            profile.setGender(request.gender());
+        }
+        if (request.address() != null) {
+            profile.setAddress(request.address());
+            user.setLocation(request.address());
         }
         if (request.bio() != null) {
             profile.setBio(request.bio());
         }
 
-        return UserProfileResponseDTO.fromEntity(userProfileRepository.save(profile));
+        userRepository.save(user);
+        UserProfile savedProfile = userProfileRepository.save(profile);
+        return UserProfileResponseDTO.fromEntities(user, savedProfile);
     }
 
     private UserProfile getOrCreateProfile(User user) {
@@ -48,7 +72,7 @@ public class UserProfileService {
                     UserProfile profile = new UserProfile();
                     profile.setUser(user);
                     user.setProfile(profile);
-                    profile.setDisplayName(user.getUsername());
+                    profile.setAddress(user.getLocation());
                     return userProfileRepository.save(profile);
                 });
     }

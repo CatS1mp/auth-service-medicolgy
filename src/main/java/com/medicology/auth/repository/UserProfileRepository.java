@@ -3,7 +3,6 @@ package com.medicology.auth.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.medicology.auth.dto.response.UserProfileHeaderResponseDTO;
 import com.medicology.auth.entity.UserProfile;
 
 import java.util.Optional;
