@@ -2,7 +2,6 @@ package com.medicology.auth.dto.response;
 
 import com.medicology.auth.entity.User;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -10,8 +9,6 @@ public record UserResponseDTO(
         UUID id,
         String email,
         String username,
-        LocalDate dateOfBirth,
-        String location,
         Boolean active,
         Boolean verified,
         Boolean admin,
@@ -24,8 +21,6 @@ public record UserResponseDTO(
                 user.getId(),
                 user.getEmail(),
                 user.getUsername(),
-                user.getDateOfBirth(),
-                user.getLocation(),
                 user.getIsActive(),
                 user.getIsVerified(),
                 user.getIsAdmin(),

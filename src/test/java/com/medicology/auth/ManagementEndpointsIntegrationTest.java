@@ -112,14 +112,14 @@ class ManagementEndpointsIntegrationTest {
 
     @Test
     void getCurrentProfileReturnsMergedUserAndProfileFields() throws Exception {
-        user.setDateOfBirth(LocalDate.of(2005, 11, 19));
-        user.setLocation("Thanh pho Ho Chi Minh");
         userRepository.save(user);
 
         UserProfile profile = new UserProfile();
         profile.setUser(user);
         profile.setLastName("Tran Van");
         profile.setFirstName("A");
+        profile.setDateOfBirth(LocalDate.of(2005, 11, 19));
+        profile.setAddress("Thanh pho Ho Chi Minh");
         profile.setGender("MALE");
         profile.setBio("Gioi thieu ban than");
         userProfileRepository.save(profile);
@@ -164,10 +164,9 @@ class ManagementEndpointsIntegrationTest {
 
         User reloadedUser = userRepository.findById(user.getId()).orElseThrow();
         Assertions.assertEquals("user-profile-updated", reloadedUser.getUsername());
-        Assertions.assertEquals(LocalDate.of(2005, 11, 19), reloadedUser.getDateOfBirth());
-        Assertions.assertEquals("Thanh pho Ho Chi Minh", reloadedUser.getLocation());
 
         UserProfile reloadedProfile = userProfileRepository.findById(user.getId()).orElseThrow();
+        Assertions.assertEquals(LocalDate.of(2005, 11, 19), reloadedProfile.getDateOfBirth());
         Assertions.assertEquals("Tran Van", reloadedProfile.getLastName());
         Assertions.assertEquals("A", reloadedProfile.getFirstName());
         Assertions.assertEquals("MALE", reloadedProfile.getGender());

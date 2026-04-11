@@ -324,7 +324,6 @@ public class AuthService {
         return userProfileRepository.findById(user.getId())
                 .orElseGet(() -> {
                     UserProfile profile = new UserProfile();
-                    profile.setAddress(user.getLocation());
                     profile.setUser(user);
                     user.setProfile(profile);
                     return userProfileRepository.save(profile);

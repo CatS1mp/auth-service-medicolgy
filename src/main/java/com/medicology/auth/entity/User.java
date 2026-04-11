@@ -2,14 +2,12 @@ package com.medicology.auth.entity;
 
 import jakarta.persistence.*; // Cho @Entity, @Table, @Id, @Column, @OneToOne...
 import jakarta.validation.constraints.Email;
-import lombok.Data; // Cho @Data
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
 import org.hibernate.annotations.CreationTimestamp; // Cho @CreationTimestamp
 import org.hibernate.annotations.UpdateTimestamp; // Cho @UpdateTimestamp
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -32,10 +30,6 @@ public class User {
 
     @Column(name = "password_hash")
     private String passwordHash;
-
-    private LocalDate dateOfBirth;
-
-    private String location;
 
     private Boolean isActive = true;
 
