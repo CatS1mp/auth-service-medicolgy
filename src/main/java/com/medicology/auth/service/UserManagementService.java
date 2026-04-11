@@ -10,9 +10,7 @@ import com.medicology.auth.dto.response.UserResponseDTO;
 import com.medicology.auth.dto.response.UserSessionResponseDTO;
 import com.medicology.auth.dto.response.UserSettingResponseDTO;
 import com.medicology.auth.entity.User;
-import com.medicology.auth.entity.UserProfile;
 import com.medicology.auth.exception.ApiException;
-import com.medicology.auth.repository.UserProfileRepository;
 import com.medicology.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -28,7 +26,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserManagementService {
     private final UserRepository userRepository;
-    private final UserProfileRepository userProfileRepository;
     private final CurrentUserService currentUserService;
     private final PasswordEncoder passwordEncoder;
     private final UserProfileService userProfileService;
@@ -43,7 +40,6 @@ public class UserManagementService {
     @Transactional
     public UserResponseDTO updateCurrentUser(Authentication authentication, UpdateUserRequestDTO request) {
         User user = currentUserService.getCurrentUser(authentication);
-        UserProfile profile = userProfileRepository.findByUserId(user.getId()).orElse(null);
 
         if (request.username() != null && !request.username().equals(user.getUsername())) {
             if (userRepository.existsByUsernameAndIdNot(request.username(), user.getId())) {
@@ -52,20 +48,6 @@ public class UserManagementService {
             user.setUsername(request.username());
         }
 
-        if (request.dateOfBirth() != null) {
-            user.setDateOfBirth(request.dateOfBirth());
-        }
-
-        if (request.location() != null) {
-            user.setLocation(request.location());
-            if (profile != null) {
-                profile.setAddress(request.location());
-            }
-        }
-
-        if (profile != null) {
-            userProfileRepository.save(profile);
-        }
         return UserResponseDTO.fromEntity(userRepository.save(user));
     }
 

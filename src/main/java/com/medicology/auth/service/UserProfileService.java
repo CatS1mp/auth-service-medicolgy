@@ -41,7 +41,7 @@ public class UserProfileService {
         }
 
         if (request.dateOfBirth() != null) {
-            user.setDateOfBirth(request.dateOfBirth());
+            profile.setDateOfBirth(request.dateOfBirth());
         }
 
         if (request.lastName() != null) {
@@ -55,7 +55,6 @@ public class UserProfileService {
         }
         if (request.address() != null) {
             profile.setAddress(request.address());
-            user.setLocation(request.address());
         }
         if (request.bio() != null) {
             profile.setBio(request.bio());
@@ -72,7 +71,6 @@ public class UserProfileService {
                     UserProfile profile = new UserProfile();
                     profile.setUser(user);
                     user.setProfile(profile);
-                    profile.setAddress(user.getLocation());
                     return userProfileRepository.save(profile);
                 });
     }

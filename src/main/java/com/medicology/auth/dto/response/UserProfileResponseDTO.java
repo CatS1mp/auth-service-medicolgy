@@ -25,18 +25,11 @@ public record UserProfileResponseDTO(
                 user.getUsername(),
                 profile != null ? profile.getLastName() : null,
                 profile != null ? profile.getFirstName() : null,
-                user.getDateOfBirth(),
+                profile != null ? profile.getDateOfBirth() : null,
                 profile != null ? profile.getGender() : null,
-                resolveAddress(user, profile),
+                profile != null ? profile.getAddress() : null,
                 resolveDisplayName(profile),
                 profile != null ? profile.getBio() : null);
-    }
-
-    private static String resolveAddress(User user, UserProfile profile) {
-        if (profile != null && profile.getAddress() != null && !profile.getAddress().isBlank()) {
-            return profile.getAddress();
-        }
-        return user.getLocation();
     }
 
     private static String resolveDisplayName(UserProfile profile) {

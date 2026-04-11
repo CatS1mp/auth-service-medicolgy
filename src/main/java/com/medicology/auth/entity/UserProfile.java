@@ -2,6 +2,8 @@ package com.medicology.auth.entity;
 
 import jakarta.persistence.*; // Cho @Entity, @Table, @Id, @Column, @OneToOne...
 import lombok.Data; // Cho @Data
+
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -21,6 +23,8 @@ public class UserProfile {
 
     @Column(length = 100)
     private String lastName;
+
+    private LocalDate dateOfBirth;
 
     @Column(length = 50)
     private String gender;
