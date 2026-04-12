@@ -59,6 +59,7 @@ public class JWTTokenProvider {
                 .issuedAt(new Date())
                 .claim("type", type)
                 .claim("id", user.getId().toString())
+                .claim("role", Boolean.TRUE.equals(user.getIsAdmin()) ? "ADMIN" : "USER")
                 .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(key)
                 .compact();
