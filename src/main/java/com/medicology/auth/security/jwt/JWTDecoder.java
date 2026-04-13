@@ -19,6 +19,12 @@ public class JWTDecoder {
     @Value("${jwt.secret}")
     private String secretKey;
 
+    @Value("${jwt.issuer:medicology-auth}")
+    private String expectedIssuer;
+
+    @Value("${jwt.audience:medicology-api}")
+    private String expectedAudience;
+
     private SecretKey key;
 
     @PostConstruct
@@ -38,6 +44,14 @@ public class JWTDecoder {
         return extractAllClaims(token).getSubject();
     }
 
+    public String extractUserIdClaim(String token) {
+        try {
+            return extractAllClaims(token).get("id", String.class);
+        } catch (JwtException | IllegalArgumentException e) {
+            return null;
+        }
+    }
+
     // 3. Hàm kiểm tra Token hợp lệ hay không
     public boolean isTokenValid(String token, String expectedType) {
         try {
@@ -49,7 +63,24 @@ public class JWTDecoder {
 
             // Kiểm tra đúng loại token (Access vs Refresh)
             String tokenType = claims.get("type", String.class);
-            return expectedType.equals(tokenType);
+            if (!expectedType.equals(tokenType)) {
+                return false;
+            }
+            String iss = claims.getIssuer();
+            if (iss == null || !expectedIssuer.equals(iss)) {
+                return false;
+            }
+            Object aud = claims.get("aud");
+            if (aud == null) {
+                return false;
+            }
+            if (aud instanceof String s) {
+                return expectedAudience.equals(s);
+            }
+            if (aud instanceof java.util.Collection<?> col) {
+                return col.stream().anyMatch(expectedAudience::equals);
+            }
+            return false;
 
         } catch (ExpiredJwtException e) {
             // Token hết hạn - Log ra để debug nếu cần
