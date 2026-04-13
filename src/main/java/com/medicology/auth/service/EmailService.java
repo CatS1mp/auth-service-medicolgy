@@ -8,15 +8,19 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.http.*;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 
 @Service
 public class EmailService {
 
+    private static final Logger log = LoggerFactory.getLogger(EmailService.class);
+
     @Value("${frontend.url}")
     private String frontendUrl;
 
-    @Value("${sendgrid.api-key}")
+    @Value("${sendgrid.api.key}")
     private String apiKey;
 
     // Nên đưa email gửi vào file config
@@ -37,7 +41,7 @@ public class EmailService {
         context.setVariable("deleteUrl", frontendUrl + "/auth/delete?token=" + token);
 
         String content = templateEngine.process("EmailTemplate", context);
-        System.out.println("DEBUG HTML CONTENT: " + content);
+        log.debug("sendgrid_verification_email compose_done email={}", email);
         String url = "https://api.sendgrid.com/v3/mail/send";
 
         HttpHeaders headers = new HttpHeaders();
@@ -58,11 +62,10 @@ public class EmailService {
         try {
             ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
             if (response.getStatusCode() == HttpStatus.ACCEPTED) {
-                System.out.println("Email đã được gửi vào hàng chờ của SendGrid.");
+                log.info("sendgrid_accepted email={}", email);
             }
         } catch (HttpClientErrorException e) {
-            // Log chi tiết lỗi từ SendGrid (Rất quan trọng để debug)
-            System.err.println("Lỗi SendGrid: " + e.getResponseBodyAsString());
+            log.error("sendgrid_error status={} body={}", e.getStatusCode(), e.getResponseBodyAsString());
             throw e;
         }
     }

@@ -15,4 +15,8 @@ public interface UserOAuthAccountRepository extends JpaRepository<UserOAuthAccou
     boolean existsByUser(User user);
     Optional<UserOAuthAccount> findByUser(User user);
     List<UserOAuthAccount> findAllByUser(User user);
+
+    Optional<UserOAuthAccount> findByGoogleUserId(String googleUserId);
+
+    Optional<UserOAuthAccount> findByFacebookUserId(String facebookUserId);
 }
