@@ -2,6 +2,7 @@ package com.medicology.auth.config;
 
 import com.medicology.auth.security.jwt.JWTDecoder;
 import com.medicology.auth.service.UserDetailService;
+import com.medicology.auth.wrapper.CustomUserDetail;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,35 +33,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
-        final String userIdentifier; // Thông tin định danh từ JWT (email hoặc username)
 
-        // 1. Kiểm tra JWT có trong header hay không
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 2. Trích xuất JWT từ Header (bỏ qua chuỗi "Bearer ")
         jwt = authHeader.substring(7);
 
         try {
-            // Trích xuất identifier từ JWT (hiện tại JWTDecoder đang gọi extractEmail để
-            // lấy subject)
-            userIdentifier = jwtDecoder.extractEmail(jwt);
+            String userIdentifier = jwtDecoder.extractEmail(jwt);
 
-            // 3. Nếu có thông tin và chưa xác thực thì tiến hành xác thực
             if (userIdentifier != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-                // Chú ý: Cần đảm bảo logic truyền vào loadUserByUsername đồng nhất với việc tạo
-                // token.
-                // Do JWTTokenProvider đang dùng user.getEmail() làm subject, nhưng
-                // loadUserByUsername lại tìm theo Username.
-                // Ở đây ta gọi hàm loadUserByUsername như thông thường.
-                UserDetails userDetails = userDetailService.loadUserByUsername(userIdentifier);
-
-                // Kiểm tra tính hợp lệ của token
                 if (jwtDecoder.isTokenValid(jwt, "access")) {
-                    // 4. Khởi tạo đối tượng xác thực
+                    UserDetails userDetails = userDetailService.loadUserByUsername(userIdentifier);
+                    String idClaim = jwtDecoder.extractUserIdClaim(jwt);
+                    if (userDetails instanceof CustomUserDetail customUserDetail && idClaim != null) {
+                        if (!customUserDetail.getId().toString().equals(idClaim)) {
+                            SecurityContextHolder.clearContext();
+                            filterChain.doFilter(request, response);
+                            return;
+                        }
+                    }
+
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
@@ -69,7 +65,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     authToken.setDetails(
                             new WebAuthenticationDetailsSource().buildDetails(request));
 
-                    // 5. Báo danh với Spring Security
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
@@ -77,7 +72,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.clearContext();
         }
 
-        // 6. Chuyển request đến bộ lọc tiếp theo
         filterChain.doFilter(request, response);
     }
 }

@@ -29,6 +29,12 @@ public class JWTTokenProvider {
     @Value("${refresh.token.expiration}")
     private long refreshTokenExpiration;
 
+    @Value("${jwt.issuer:medicology-auth}")
+    private String jwtIssuer;
+
+    @Value("${jwt.audience:medicology-api}")
+    private String jwtAudience;
+
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
 
@@ -55,6 +61,8 @@ public class JWTTokenProvider {
     // 1. Hàm tạo Token
     private String generateToken(User user, long expiration, String type) {
         return Jwts.builder()
+                .issuer(jwtIssuer)
+                .audience().add(jwtAudience).and()
                 .subject(user.getEmail())
                 .issuedAt(new Date())
                 .claim("type", type)
