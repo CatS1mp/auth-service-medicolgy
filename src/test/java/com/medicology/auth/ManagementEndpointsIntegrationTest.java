@@ -143,6 +143,53 @@ class ManagementEndpointsIntegrationTest {
     }
 
     @Test
+    void getProfileByIdAllowsSelf() throws Exception {
+        mockMvc.perform(get("/api/v1/profiles/" + user.getId())
+                        .header("Authorization", "Bearer " + userAccessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("user@medicology.dev"));
+    }
+
+    @Test
+    void getProfileByIdForbiddenForOtherNonAdmin() throws Exception {
+        mockMvc.perform(get("/api/v1/profiles/" + admin.getId())
+                        .header("Authorization", "Bearer " + userAccessToken))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void getProfileByIdAllowedForAdmin() throws Exception {
+        mockMvc.perform(get("/api/v1/profiles/" + user.getId())
+                        .header("Authorization", "Bearer " + adminAccessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("user@medicology.dev"));
+    }
+
+    @Test
+    void putProfileByIdUpdatesWhenSelf() throws Exception {
+        String payload = objectMapper.writeValueAsString(new UpdateProfileRequest(
+                "by-id-user",
+                "Ho",
+                "Ten",
+                LocalDate.of(2000, 1, 2),
+                "FEMALE",
+                "Addr",
+                "Bio text"));
+
+        mockMvc.perform(put("/api/v1/profiles/" + user.getId())
+                        .header("Authorization", "Bearer " + userAccessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("by-id-user"))
+                .andExpect(jsonPath("$.lastName").value("Ho"))
+                .andExpect(jsonPath("$.firstName").value("Ten"));
+
+        User reloaded = userRepository.findById(user.getId()).orElseThrow();
+        Assertions.assertEquals("by-id-user", reloaded.getUsername());
+    }
+
+    @Test
     void putProfileMeUpdatesNewNullableFields() throws Exception {
         String payload = objectMapper.writeValueAsString(new UpdateProfileRequest(
                 "user-profile-updated",

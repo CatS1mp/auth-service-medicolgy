@@ -13,6 +13,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class UserProfileService {
@@ -24,6 +26,13 @@ public class UserProfileService {
         return getProfileByUser(currentUserService.getCurrentUser(authentication));
     }
 
+    public UserProfileResponseDTO getProfileByUserId(Authentication authentication, UUID userId) {
+        currentUserService.assertSelfOrAdmin(authentication, userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Không tìm thấy người dùng."));
+        return getProfileByUser(user);
+    }
+
     public UserProfileResponseDTO getProfileByUser(User user) {
         return UserProfileResponseDTO.fromEntities(user, getOrCreateProfile(user));
     }
@@ -31,6 +40,19 @@ public class UserProfileService {
     @Transactional
     public UserProfileResponseDTO updateCurrentProfile(Authentication authentication, UpdateProfileRequestDTO request) {
         User user = currentUserService.getCurrentUser(authentication);
+        return applyProfileUpdate(user, request);
+    }
+
+    @Transactional
+    public UserProfileResponseDTO updateProfileByUserId(
+            Authentication authentication, UUID userId, UpdateProfileRequestDTO request) {
+        currentUserService.assertSelfOrAdmin(authentication, userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Không tìm thấy người dùng."));
+        return applyProfileUpdate(user, request);
+    }
+
+    private UserProfileResponseDTO applyProfileUpdate(User user, UpdateProfileRequestDTO request) {
         UserProfile profile = getOrCreateProfile(user);
 
         if (request.username() != null && !request.username().equals(user.getUsername())) {
