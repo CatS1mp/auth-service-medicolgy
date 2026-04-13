@@ -19,6 +19,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -62,6 +63,9 @@ class ManagementEndpointsIntegrationTest {
 
     @Autowired
     private JWTTokenProvider jwtTokenProvider;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @MockBean
     private EmailService emailService;
@@ -112,17 +116,18 @@ class ManagementEndpointsIntegrationTest {
 
     @Test
     void getCurrentProfileReturnsMergedUserAndProfileFields() throws Exception {
-        userRepository.save(user);
-
-        UserProfile profile = new UserProfile();
-        profile.setUser(user);
-        profile.setLastName("Tran Van");
-        profile.setFirstName("A");
-        profile.setDateOfBirth(LocalDate.of(2005, 11, 19));
-        profile.setAddress("Thanh pho Ho Chi Minh");
-        profile.setGender("MALE");
-        profile.setBio("Gioi thieu ban than");
-        userProfileRepository.save(profile);
+        jdbcTemplate.update(
+                """
+                        INSERT INTO user_profile (user_id, first_name, last_name, date_of_birth, gender, address, bio)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                        """,
+                user.getId(),
+                "A",
+                "Tran Van",
+                java.sql.Date.valueOf(LocalDate.of(2005, 11, 19)),
+                "MALE",
+                "Thanh pho Ho Chi Minh",
+                "Gioi thieu ban than");
 
         mockMvc.perform(get("/api/v1/profiles/me")
                         .header("Authorization", "Bearer " + userAccessToken))
