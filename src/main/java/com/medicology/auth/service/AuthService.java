@@ -23,6 +23,7 @@ import com.medicology.auth.exception.ApiException;
 import com.medicology.auth.security.jwt.JWTTokenProvider;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 import jakarta.transaction.Transactional;
@@ -89,51 +90,91 @@ public class AuthService {
 
     @Transactional
     public LoginResponseDTO processOAuthPostLogin(OAuthRequestDTO request) {
-        User user = userRepository.findByEmail(request.email())
-                .orElseGet(() -> {
-                    User newUser = new User();
-                    newUser.setEmail(request.email());
-                    newUser.setUsername(request.name());
-                    newUser.setIsVerified(true);
-                    newUser.setPasswordHash(null);
+        boolean hasGoogle = request.googleId() != null && !request.googleId().isBlank();
+        boolean hasFacebook = request.facebookId() != null && !request.facebookId().isBlank();
+        if (!hasGoogle && !hasFacebook) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Provider user id is required.");
+        }
 
-                    return userRepository.save(newUser);
-                });
-        if (!Boolean.TRUE.equals(user.getIsActive())) {
+        User user = null;
+
+        if (hasGoogle) {
+            Optional<UserOAuthAccount> byGoogle = userOAuthAccountRepository.findByGoogleUserId(request.googleId());
+            if (byGoogle.isPresent()) {
+                user = byGoogle.get().getUser();
+                if (!user.getEmail().equalsIgnoreCase(request.email())) {
+                    throw new ApiException(HttpStatus.CONFLICT, "Email does not match the linked Google account.");
+                }
+            }
+        }
+
+        if (user == null && hasFacebook) {
+            Optional<UserOAuthAccount> byFb = userOAuthAccountRepository.findByFacebookUserId(request.facebookId());
+            if (byFb.isPresent()) {
+                user = byFb.get().getUser();
+                if (!user.getEmail().equalsIgnoreCase(request.email())) {
+                    throw new ApiException(HttpStatus.CONFLICT, "Email does not match the linked Facebook account.");
+                }
+            }
+        }
+
+        if (user == null) {
+            user = userRepository.findByEmail(request.email()).orElse(null);
+            if (user == null) {
+                User newUser = new User();
+                newUser.setEmail(request.email());
+                newUser.setUsername(request.name());
+                newUser.setIsVerified(true);
+                newUser.setPasswordHash(null);
+                user = userRepository.save(newUser);
+            } else {
+                UserOAuthAccount existing = userOAuthAccountRepository.findByUser(user).orElse(null);
+                if (hasGoogle && existing != null && existing.getGoogleUserId() != null
+                        && !existing.getGoogleUserId().equals(request.googleId())) {
+                    throw new ApiException(HttpStatus.CONFLICT, "This email is linked to a different Google account.");
+                }
+                if (hasFacebook && existing != null && existing.getFacebookUserId() != null
+                        && !existing.getFacebookUserId().equals(request.facebookId())) {
+                    throw new ApiException(HttpStatus.CONFLICT, "This email is linked to a different Facebook account.");
+                }
+            }
+        }
+
+        final User resolvedUser = user;
+        if (!Boolean.TRUE.equals(resolvedUser.getIsActive())) {
             throw new ApiException(HttpStatus.FORBIDDEN, "Tài khoản đang bị khóa.");
         }
-        user.setLastLoginAt(LocalDateTime.now());
-        userRepository.save(user);
+        resolvedUser.setLastLoginAt(LocalDateTime.now());
+        userRepository.save(resolvedUser);
 
-        UserProfile profile = getOrCreateProfile(user);
-        userSettingRepository.findByUserId(user.getId()).orElseGet(() -> {
+        UserProfile profile = getOrCreateProfile(resolvedUser);
+        userSettingRepository.findByUserId(resolvedUser.getId()).orElseGet(() -> {
             UserSetting userSetting = new UserSetting();
-            userSetting.setUser(user);
+            userSetting.setUser(resolvedUser);
             return userSettingRepository.save(userSetting);
         });
 
-        UserOAuthAccount oauthAccount = userOAuthAccountRepository.findByUser(user)
+        UserOAuthAccount oauthAccount = userOAuthAccountRepository.findByUser(resolvedUser)
                 .orElseGet(() -> {
                     UserOAuthAccount newAccount = new UserOAuthAccount();
-                    newAccount.setUser(user);
+                    newAccount.setUser(resolvedUser);
                     return newAccount;
                 });
 
-        if (request.googleId() != null) {
+        if (hasGoogle) {
             oauthAccount.setGoogleUserId(request.googleId());
         }
-        if (request.facebookId() != null) {
+        if (hasFacebook) {
             oauthAccount.setFacebookUserId(request.facebookId());
         }
 
         userOAuthAccountRepository.save(oauthAccount);
 
-        // 2. Trả về Response
         return LoginResponseDTO.builder()
-                .accessToken(jwtTokenProvider.generateAccessToken(user))
-                .refreshToken(jwtTokenProvider.generateRefreshToken(user))
+                .accessToken(jwtTokenProvider.generateAccessToken(resolvedUser))
+                .refreshToken(jwtTokenProvider.generateRefreshToken(resolvedUser))
                 .expiresIn(accessTokenExpiration / 1000)
-                .userProfile(UserProfileResponseDTO.fromEntities(user, profile))
+                .userProfile(UserProfileResponseDTO.fromEntities(resolvedUser, profile))
                 .build();
     }
 
