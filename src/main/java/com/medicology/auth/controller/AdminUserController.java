@@ -1,5 +1,6 @@
 package com.medicology.auth.controller;
 
+import com.medicology.auth.common.pagination.PaginatedResponse;
 import com.medicology.auth.dto.request.UpdateUserStatusRequestDTO;
 import com.medicology.auth.dto.response.AdminUserDetailResponseDTO;
 import com.medicology.auth.dto.response.UserResponseDTO;
@@ -25,9 +26,12 @@ public class AdminUserController {
     private final UserManagementService userManagementService;
 
     @GetMapping
-    public ResponseEntity<List<UserResponseDTO>> listUsers(
-            @RequestParam(required = false) Boolean active) {
-        return ResponseEntity.ok(userManagementService.getAdminUsers(active));
+    public ResponseEntity<PaginatedResponse<UserResponseDTO>> listUsers(
+            @RequestParam(required = false) Boolean active,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        List<UserResponseDTO> users = userManagementService.getAdminUsers(active);
+        return ResponseEntity.ok(PaginatedResponse.fromList(users, page, size));
     }
 
     @GetMapping("/{id}")
