@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com</groupId>
-	<artifactId>auth-service-medicolgy</artifactId>
+	<artifactId>auth-service-medicology</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>Medicology&apos;s Auth Service</name>
 	<description>Spring Boot BE for auth service </description>
