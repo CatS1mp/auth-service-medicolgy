@@ -11,9 +11,9 @@ public record UpdateUserSettingsRequestDTO(
         LocalTime dailyReminderTime,
         Boolean emailNotifications,
         Boolean pushNotifications,
-        @Pattern(regexp = "light|dark|system", message = "Theme preference chỉ hỗ trợ light, dark hoặc system.")
+        @Pattern(regexp = "light|dark|system", message = "Giao diện chỉ hỗ trợ: sáng (light), tối (dark) hoặc theo hệ thống (system).")
         String themePreference,
-        @Min(value = 1, message = "Daily goal courses phải lớn hơn hoặc bằng 1.")
-        @Max(value = 100, message = "Daily goal courses phải nhỏ hơn hoặc bằng 100.")
+        @Min(value = 1, message = "Mục tiêu khóa học mỗi ngày phải từ 1 trở lên.")
+        @Max(value = 100, message = "Mục tiêu khóa học mỗi ngày không được vượt quá 100.")
         Integer dailyGoalCourses) {
 }

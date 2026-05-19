@@ -93,7 +93,7 @@ public class AuthService {
         boolean hasGoogle = request.googleId() != null && !request.googleId().isBlank();
         boolean hasFacebook = request.facebookId() != null && !request.facebookId().isBlank();
         if (!hasGoogle && !hasFacebook) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Provider user id is required.");
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Cần mã người dùng từ nhà cung cấp OAuth.");
         }
 
         User user = null;
@@ -103,7 +103,7 @@ public class AuthService {
             if (byGoogle.isPresent()) {
                 user = byGoogle.get().getUser();
                 if (!user.getEmail().equalsIgnoreCase(request.email())) {
-                    throw new ApiException(HttpStatus.CONFLICT, "Email does not match the linked Google account.");
+                    throw new ApiException(HttpStatus.CONFLICT, "Email không khớp tài khoản Google đã liên kết.");
                 }
             }
         }
@@ -113,7 +113,7 @@ public class AuthService {
             if (byFb.isPresent()) {
                 user = byFb.get().getUser();
                 if (!user.getEmail().equalsIgnoreCase(request.email())) {
-                    throw new ApiException(HttpStatus.CONFLICT, "Email does not match the linked Facebook account.");
+                    throw new ApiException(HttpStatus.CONFLICT, "Email không khớp tài khoản Facebook đã liên kết.");
                 }
             }
         }
@@ -131,11 +131,11 @@ public class AuthService {
                 UserOAuthAccount existing = userOAuthAccountRepository.findByUser(user).orElse(null);
                 if (hasGoogle && existing != null && existing.getGoogleUserId() != null
                         && !existing.getGoogleUserId().equals(request.googleId())) {
-                    throw new ApiException(HttpStatus.CONFLICT, "This email is linked to a different Google account.");
+                    throw new ApiException(HttpStatus.CONFLICT, "Email này đã liên kết với tài khoản Google khác.");
                 }
                 if (hasFacebook && existing != null && existing.getFacebookUserId() != null
                         && !existing.getFacebookUserId().equals(request.facebookId())) {
-                    throw new ApiException(HttpStatus.CONFLICT, "This email is linked to a different Facebook account.");
+                    throw new ApiException(HttpStatus.CONFLICT, "Email này đã liên kết với tài khoản Facebook khác.");
                 }
             }
         }
@@ -255,10 +255,10 @@ public class AuthService {
     @Transactional
     public void resetPassword(ResetPasswordRequestDTO request) {
         ResetToken resetToken = resetTokenRepository.findByToken(request.token())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid token"));
+                .orElseThrow(() -> new IllegalArgumentException("Token không hợp lệ."));
 
         if (resetToken.getExpiryDate().isBefore(java.time.LocalDateTime.now())) {
-            throw new IllegalArgumentException("Reset token has expired");
+            throw new IllegalArgumentException("Token đặt lại mật khẩu đã hết hạn.");
         }
         if (!request.newPassword().equals(request.confirmPassword())) {
             throw new IllegalArgumentException("Mật khẩu mới và xác nhận mật khẩu mới không khớp");
